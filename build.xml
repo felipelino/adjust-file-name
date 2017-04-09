@@ -1,0 +1,112 @@
+<project name="AdjustFileNames" default="dist" basedir=".">
+	<property file="build.properties"/>
+	
+	<property name="source"				location="src/main/java"		/>
+	<property name="classes"			location="classes"		/>
+	<property name="src.lib"			location="lib"			/>
+	<property name="src.resource" 		location="src/main/resources"	/>
+	<property name="bin"  				location="bin"			/>
+	<property name="doc"  				location="doc"			/>
+	<property name="lib"  				location="bin/lib"		/>
+	<property name="resource"  			location="bin/resources"/>
+	<property name="jarname"			location="bin/${baseName}.jar"/>
+	
+	
+	<path id="compile.classpath">
+		<fileset dir="${src.lib}">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	
+	<target name="clean" description="Apaga as pastas destino da compilacao" >
+		<echo>Apagando as pastas destino da compilacao</echo>
+		<echo>Removing the folders destination of the compilation</echo>
+		<delete dir="${bin}"		/>
+		<delete dir="${classes}"/>
+		<delete dir="${doc}"/>
+		<delete file="${baseName}_doc.zip"/>
+		<delete file="${baseName}_bin.zip"/>
+		<delete file="${baseName}_src.zip"/>
+		<delete file="Version.txt"/>
+	</target>
+  
+	<target name="compile" description="compila os fontes " >
+		<echo>Compilando os fontes</echo>
+		<echo>Compiling the sources</echo>
+		<mkdir dir="${classes}"/>
+		<javac srcdir="${source}" destdir="${classes}" classpathref="compile.classpath"/>
+	</target>
+	
+	<target name="createjar" depends="compile" description="Cria o arquivo jar" >
+		<echo>Criando arquivo ${baseName}.jar</echo>
+		<echo>Creating ${baseName}.jar file</echo>
+		<mkdir dir="${bin}"/>
+		<jar destfile="${jarname}" basedir="${classes}">
+			<manifest>
+				<attribute name="Built-By" value="petrobras"/>
+				<attribute name="Main-Class" value="${mainClass}"/>
+				<attribute name="Class-Path" value="${classpath}" />
+				
+				<section name="${mainClassPath}">
+					<attribute name="Java-Bean" value="True"/>
+				</section>
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="copyfiles" description="Copia as pastas resource e lib para a pasta bin">
+		<echo>Copiando arquivos necessarios para execucao</echo>
+		<echo>Copying necessary files for execution</echo>
+		<mkdir dir="${resource}"/>
+		<mkdir dir="${lib}"		/>
+		<copy todir="${resource}">
+			<fileset dir="${src.resource}"></fileset>
+		</copy>
+		<copy todir="${lib}">
+			<fileset dir="${src.lib}" includes="**/*.jar"/>
+		</copy>
+		<copy todir="${bin}">
+			<fileset dir="./" includes="**/Version.txt"/>
+		</copy>
+	</target>
+	
+	<target name="versionfile" description="Cria o arquivo com o time stamp da geracao do ant">
+		<echo>Criando arquivo Version.txt</echo>
+		<echo>Creating Version.txt file</echo>
+		<tstamp>
+      <format property="touch.time" pattern="dd/MM/yyyy HH:mm"/>
+	  </tstamp>
+		<concat destfile="Version.txt">Author: Felipe G. de Oliveira Lino
+E-mail: felipelino44@gmail.com
+Create: ${touch.time}</concat>
+	</target>
+	
+	<target name="zipsource" description="Cria um arquivo zip apenas com os fontes do programa">
+		<echo>Criando ${baseName}_src.zip com os fontes do programa</echo>
+		<echo>Creating ${baseName}_src.zip with sources of the program</echo>
+		<zip destfile="${baseName}_src.zip">
+			<fileset dir="./" excludes="**/*.bak"/>
+		</zip>
+	</target>
+	
+	<target name="zipfiles" description="Cria arquivo zip com o binario do programa">
+		<echo>Criando ${baseName}_bin.zip com o programa</echo>
+		<echo>Creating ${baseName}_bin.zip with the program</echo> 
+		<delete file="${baseName}_bin.zip"/>
+		
+		<zip destfile="${baseName}_bin.zip">
+			<fileset dir="${bin}"/>
+		</zip>
+	</target>
+	
+	<target name="message" description="Exibe mensagem">
+		<echo>Criando distribuicao</echo>
+		<echo>Creating distribution</echo>
+	</target>
+	
+	<target name="dist" depends="message, clean, versionfile, zipsource, compile, createjar, copyfiles, zipfiles" description="Gera distribuicao">
+		<echo>Distribuicao criada</echo>
+		<echo>Distribution create</echo>
+	</target>
+	
+</project>
